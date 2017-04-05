@@ -33,8 +33,6 @@ handleKeyPress = (event) => {
 
       const newMessage = {id: this.state.messages.length +1, username: this.state.currentUser.name, content: event.target.value};
       const messages = this.state.messages.concat(newMessage);
-      //this.setState({messages: messages})
-
       this.socket.send(JSON.stringify(newMessage));
       event.target.value = '';
 
@@ -52,22 +50,17 @@ componentDidMount() {
 
   this.socket.onopen = () => {
     console.log("Got a connection!");
-    window.addEventListener('enter', (event) => {
-      this.socket.send("Hello");
-    });
   }
-
-  setTimeout(() => {
-    console.log("Simulating incoming message");
-    const newMessage = {id: 3, username: "Michelle", content: "Hello there!"};
-    const messages = this.state.messages.concat(newMessage)
+  this.socket.onmessage = (messageEvent) => {
+    console.log(messageEvent.data);
+    const newMessage = JSON.parse(messageEvent.data);
+    const messages = this.state.messages.concat(newMessage);
     this.setState({messages: messages})
-  }, 3000);
+  }
 }
 
 render() {
     console.log("Rendering <App/>");
-
     return (
       <div>
         <MessageList messages={this.state.messages}/>
