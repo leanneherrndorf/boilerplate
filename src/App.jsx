@@ -23,8 +23,8 @@ class App extends Component {
         }
       ]
     }
-    this.handleKeyPress=this.handleKeyPress.bind(this);
-    this.updateUser=this.updateUser.bind(this);
+    //this.handleKeyPress=this.handleKeyPress.bind(this);
+    //this.updateUser=this.updateUser.bind(this);
   }
 
 handleKeyPress = (event) => {
@@ -33,7 +33,10 @@ handleKeyPress = (event) => {
 
       const newMessage = {id: this.state.messages.length +1, username: this.state.currentUser.name, content: event.target.value};
       const messages = this.state.messages.concat(newMessage);
-      this.setState({messages: messages})
+      //this.setState({messages: messages})
+
+      this.socket.send(JSON.stringify(newMessage));
+      event.target.value = '';
 
     }
   }
@@ -42,16 +45,22 @@ updateUser = (event) => {
   this.setState({currentUser:{name: event.target.value}})
 }
 
-// in App.jsx
 componentDidMount() {
   console.log("componentDidMount <App />");
+
+  this.socket = new WebSocket('ws://0.0.0.0:3001');
+
+  this.socket.onopen = () => {
+    console.log("Got a connection!");
+    window.addEventListener('enter', (event) => {
+      this.socket.send("Hello");
+    });
+  }
+
   setTimeout(() => {
     console.log("Simulating incoming message");
-    // Add a new message to the list of messages in the data store
     const newMessage = {id: 3, username: "Michelle", content: "Hello there!"};
     const messages = this.state.messages.concat(newMessage)
-    // Update the state of the app component.
-    // Calling setState will trigger a call to render() in App and all child components.
     this.setState({messages: messages})
   }, 3000);
 }
