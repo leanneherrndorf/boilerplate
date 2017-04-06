@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import MessageList from './MessageList.jsx';
+//import Message from './Message.jsx';
 import ChatBar from './ChatBar.jsx';
 
 
@@ -15,18 +16,22 @@ class App extends Component {
 
 handleKeyPress = (event) => {
     if(event.key === 'Enter'){
-      console.log(event.target.value);
-
-      const newMessage = {id: this.state.messages.length +1, username: this.state.currentUser.name, content: event.target.value};
-      const messages = this.state.messages.concat(newMessage);
+      //console.log(event.target.value);
+      const newMessage = {type: "postMessage", username: this.state.currentUser.name, content: event.target.value};
+      //const messages = this.state.messages.concat(newMessage);
       this.socket.send(JSON.stringify(newMessage));
       event.target.value = '';
-
     }
   }
 
 updateUser = (event) => {
-  this.setState({currentUser:{name: event.target.value}})
+  let prevName = this.state.currentUser.name;
+  let newName = event.target.value;
+  const notification = `${prevName} has changed their name to ${newName}`;
+  const newUser = {type: "postNotification", notification: notification};
+  this.socket.send(JSON.stringify(newUser));
+  this.setState({currentUser:{name: newName}})
+
 }
 
 componentDidMount() {
@@ -34,15 +39,30 @@ componentDidMount() {
 
   this.socket = new WebSocket('ws://0.0.0.0:3001');
 
-  this.socket.onopen = () => {
+  this.socket.onopen = (event) => {
     console.log("Got a connection!");
-  }
+  };
   this.socket.onmessage = (messageEvent) => {
-    console.log(messageEvent.data);
-    const newMessage = JSON.parse(messageEvent.data);
-    const messages = this.state.messages.concat(newMessage);
+    //console.log(messageEvent.data);
+    const data = JSON.parse(messageEvent.data);
+    const messages = this.state.messages.concat(data);
     this.setState({messages: messages})
-  }
+
+    // switch(data.type) {
+    //   case "incomingMessage":
+    //     const messages = this.state.messages.concat(data);
+    //     this.setState({messages: messages})
+    //   break;
+
+    //   case "incomingNotification":
+    //     const notification =this.state.messages.concat(data);
+    //     this.setState({messages: notification})
+    //   break;
+
+    //   default:
+    //     throw new Error("Unknown event type "+ data.type);
+    // }
+  };
 }
 
 render() {
