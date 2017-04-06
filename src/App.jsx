@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import MessageList from './MessageList.jsx';
-//import Message from './Message.jsx';
+import NavBar from './NavBar.jsx';
 import ChatBar from './ChatBar.jsx';
 
 
@@ -10,15 +10,14 @@ class App extends Component {
     super(props);
     this.state = {
     currentUser: {name: "Anonymous"}, // optional. if currentUser is not defined, it means the user is Anonymous
-      messages: []
+      messages: [],
+      count: 0
     }
   }
 
 handleKeyPress = (event) => {
     if(event.key === 'Enter'){
-      //console.log(event.target.value);
       const newMessage = {type: "postMessage", username: this.state.currentUser.name, content: event.target.value};
-      //const messages = this.state.messages.concat(newMessage);
       this.socket.send(JSON.stringify(newMessage));
       event.target.value = '';
     }
@@ -31,7 +30,6 @@ updateUser = (event) => {
   const newUser = {type: "postNotification", notification: notification};
   this.socket.send(JSON.stringify(newUser));
   this.setState({currentUser:{name: newName}})
-
 }
 
 componentDidMount() {
@@ -41,27 +39,20 @@ componentDidMount() {
 
   this.socket.onopen = (event) => {
     console.log("Got a connection!");
+
   };
   this.socket.onmessage = (messageEvent) => {
-    //console.log(messageEvent.data);
+
     const data = JSON.parse(messageEvent.data);
-    const messages = this.state.messages.concat(data);
-    this.setState({messages: messages})
-
-    // switch(data.type) {
-    //   case "incomingMessage":
-    //     const messages = this.state.messages.concat(data);
-    //     this.setState({messages: messages})
-    //   break;
-
-    //   case "incomingNotification":
-    //     const notification =this.state.messages.concat(data);
-    //     this.setState({messages: notification})
-    //   break;
-
-    //   default:
-    //     throw new Error("Unknown event type "+ data.type);
-    // }
+    if(data.type ==="incomingMessage" ||data.type === "incomingNotification"){
+      const messages = this.state.messages.concat(data);
+      this.setState({messages: messages})
+    }else if(data.type ==="clientCount"){
+      console.log(data.count);
+      this.setState({count: data.count})
+    }else{
+      console.log("error!");
+    }
   };
 }
 
@@ -69,6 +60,7 @@ render() {
     console.log("Rendering <App/>");
     return (
       <div>
+        <NavBar count = {this.state.count} />
         <MessageList messages={this.state.messages}/>
         <ChatBar currentUser={this.state.currentUser.name} enter={this.handleKeyPress} leave={this.updateUser} />
       </div>
