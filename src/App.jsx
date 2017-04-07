@@ -3,6 +3,13 @@ import MessageList from './MessageList.jsx';
 import NavBar from './NavBar.jsx';
 import ChatBar from './ChatBar.jsx';
 
+const colour = ["#6699ff", "#ff66cc", "#00ff00", "#990099"];
+
+function getRandomIntInclusive(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
 class App extends Component {
     //set initial state
@@ -11,17 +18,18 @@ class App extends Component {
     this.state = {
     currentUser: {name: "Anonymous"}, // optional. if currentUser is not defined, it means the user is Anonymous
       messages: [],
-      count: 0
+      count: 0,
+      usercolour: colour[getRandomIntInclusive(0,3)]
     }
   }
 
 handleKeyPress = (event) => {
-    if(event.key === 'Enter'){
-      const newMessage = {type: "postMessage", username: this.state.currentUser.name, content: event.target.value};
-      this.socket.send(JSON.stringify(newMessage));
-      event.target.value = '';
-    }
+  if(event.key === 'Enter'){
+    const newMessage = {type: "postMessage", username: this.state.currentUser.name, content: event.target.value, usercolour: this.state.usercolour};
+    this.socket.send(JSON.stringify(newMessage));
+    event.target.value = '';
   }
+}
 
 updateUser = (event) => {
   let prevName = this.state.currentUser.name;
@@ -34,9 +42,7 @@ updateUser = (event) => {
 
 componentDidMount() {
   console.log("componentDidMount <App />");
-
   this.socket = new WebSocket('ws://0.0.0.0:3001');
-
   this.socket.onopen = (event) => {
     console.log("Got a connection!");
 
@@ -46,7 +52,7 @@ componentDidMount() {
     const data = JSON.parse(messageEvent.data);
     if(data.type ==="incomingMessage" ||data.type === "incomingNotification"){
       const messages = this.state.messages.concat(data);
-      this.setState({messages: messages})
+      this.setState({messages: messages});
     }else if(data.type ==="clientCount"){
       console.log(data.count);
       this.setState({count: data.count})

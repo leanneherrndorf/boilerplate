@@ -38,14 +38,17 @@ let clientcount = {
     ws.on('message', (data) => {
       const message = JSON.parse(data);
       let uuid = uuidV1();
+      console.log("data", data);
       switch(message.type){
         case "postMessage":
         const outputMessage = {
           type: "incomingMessage",
           id: uuid,
           username: message.username,
-          content: message.content
+          content: message.content,
+          usercolour: message.usercolour
         }
+        console.log("outputmessage", outputMessage);
         wss.broadcast(JSON.stringify(outputMessage));
         break;
         case "postNotification":
